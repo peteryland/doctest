@@ -59,7 +59,7 @@ runModules repl modules = do
     forM_ modules $ runModule repl
 
     -- report final summary
-    gets (show . reportStateSummary) >>= report
+    -- gets (show . reportStateSummary) >>= report
 
   return s
   where
@@ -194,15 +194,19 @@ runExampleGroup :: Interpreter -> [Located Interaction] -> Report ()
 runExampleGroup repl = go
   where
     go ((Located loc (expression, expected)) : xs) = do
+      report $ "> " ++ expression
       r <- fmap lines <$> liftIO (Interpreter.safeEval repl expression)
       case r of
         Left err -> do
           reportError loc expression err
-        Right actual -> case mkResult expected actual of
-          NotEqual err -> do
-            reportFailure loc expression
-            mapM_ report err
-          Equal -> do
+        Right actual -> do -- case mkResult expected actual of
+          -- NotEqual err -> do
+            -- reportFailure loc expression
+            -- mapM_ report err
+          -- Equal -> do
+            mapM_ report (addLF actual)
             reportSuccess
             go xs
     go [] = return ()
+    addLF [] = []
+    addLF xs = xs ++ [""]

@@ -91,7 +91,7 @@ parseInteractions :: Located String -> [Located Interaction]
 parseInteractions (Located loc input) = go $ zipWith Located (enumerate loc) (lines input)
   where
     isPrompt :: Located String -> Bool
-    isPrompt = isPrefixOf ">>>" . dropWhile isSpace . unLoc
+    isPrompt = isPrefixOf ">" . dropWhile isSpace . unLoc
 
     isBlankLine :: Located String -> Bool
     isBlankLine  = null . dropWhile isSpace . unLoc
@@ -103,7 +103,7 @@ parseInteractions (Located loc input) = go $ zipWith Located (enumerate loc) (li
     go :: [Located String] -> [Located Interaction]
     go xs = case dropWhile (not . isPrompt) xs of
       prompt:rest
-       | ":{" : _ <- words (drop 3 (dropWhile isSpace (unLoc prompt))),
+       | ":{" : _ <- words (drop 1 (dropWhile isSpace (unLoc prompt))),
          (ys,zs) <- break isBlankLine rest ->
           toInteraction prompt ys : go zs
 
@@ -128,7 +128,7 @@ toInteraction (Located loc x) xs = Located loc $
   where
     -- 1. drop trailing whitespace from the prompt, remember the prefix
     (prefix, e) = span isSpace x
-    (ePrompt, eRest) = splitAt 3 e
+    (ePrompt, eRest) = splitAt 1 e
 
     -- 2. drop, if possible, the exact same sequence of whitespace
     -- characters from each result line
